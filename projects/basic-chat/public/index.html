@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>simple Chat</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 2rem;
+      }
+
+      #messages {
+        flex: 1;
+        overflow-y: auto;
+        list-style: none;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 1rem 1rem 0 0;
+        padding: 1.5rem;
+        margin-bottom: 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      #messages li {
+        background: #5a67d8;
+        color: #fff;
+        padding: 0.8rem 1.2rem;
+        border-radius: 1rem;
+        margin-bottom: 0.8rem;
+        max-width: 80%;
+        word-wrap: break-word;
+        animation: fadeIn 0.3s ease-in;
+      }
+      #messages li:nth-child(odd) {
+        background: #e2e8f0;
+        color: #000;
+      }
+      #messages li:last-child {
+        margin-bottom: 0;
+      }
+
+      #form {
+        display: flex;
+        gap: 0.5rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 0 0 1rem 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      #inputMsg {
+        flex: 1;
+        padding: 0.8rem 1.2rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 0.5rem;
+        outline: none;
+        font-size: 1rem;
+        transition: border-color 0.2s ease;
+      }
+
+      #inputMsg:focus {
+        border-color: #667eea;
+      }
+
+      .sendBtn {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.2s ease;
+      }
+
+      .sendBtn:hover {
+        background: #5a67d8;
+      }
+
+      .sendBtn:active {
+        transform: scale(0.98);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      #messages::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      #messages::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      #messages::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 3px;
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 1rem;
+        }
+
+        #messages li {
+          max-width: 90%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <ul id="messages"></ul>
+    <form id="form" autocomplete="off">
+      <input
+        id="inputMsg"
+        type="text"
+        autocomplete="off"
+        placeholder="Type a message..."
+      />
+      <button id="sendBtn" class="sendBtn">Send</button>
+    </form>
+    <script>
+      const listMessage = document.getElementById("messages");
+      const sendBtn = document.getElementById("sendBtn");
+      const inputMsg = document.getElementById("inputMsg");
+      const socket = io();
+      socket.on("connect", () => {
+        console.log("Connected to Client");
+      });
+      socket.on("message", (msg) => {
+        const li = document.createElement("li");
+        li.textContent = msg;
+        listMessage.appendChild(li);
+        listMessage.scrollTop = listMessage.scrollHeight;
+      });
+      sendBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const msg = inputMsg.value;
+        if (msg) {
+          socket.emit("message", msg);
+          inputMsg.value = "";
+        }
+      });
+    </script>
+  </body>
+</html>
