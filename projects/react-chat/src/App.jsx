@@ -1,35 +1,63 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import io from "socket.io-client";
+import { Send, MessageSquare } from "lucide-react";
+const socket = io("http://localhost:3000");
 
 function App() {
-  const [count, setCount] = useState(0)
-
+  const [messages, setMessages] = useState([]);
+  const [inputMsg, setInputMsg] = useState("");
+  useEffect(() => {
+    socket.on("message", (msg) => {
+      setMessages((prevMessages) => [...prevMessages, msg]);
+    });
+    return () => {
+      socket.off("message");
+    };
+  }, [messages]);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (inputMsg.trim() !== "") {
+      socket.emit("message", inputMsg);
+      setInputMsg("");
+    }
+  };
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="chat-container">
+      <div className="chat-header">
+        <MessageSquare />
+        <h1>Chat Room</h1>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+
+      <div className="messages-container">
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={`message-wrapper ${index % 2 === 0 ? "sent" : ""}`}
+          >
+            <div className={`message ${index % 2 === 0 ? "sent" : "received"}`}>
+              {msg}
+            </div>
+          </div>
+        ))}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+
+      <form className="input-form" onSubmit={handleSubmit} autoComplete="off">
+        <div className="input-wrapper">
+          <input
+            type="text"
+            value={inputMsg}
+            onChange={(e) => setInputMsg(e.target.value)}
+            placeholder="Type your message..."
+            className="message-input"
+          />
+          <button type="submit" className="send-button">
+            <Send />
+            <span>Send</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 }
 
-export default App
+export default App;
